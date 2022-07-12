@@ -8,7 +8,7 @@ contract Playground {
     IERC20 rewardToken;
     struct Profile {
         NFTStats[3] registeredNFTs;
-        uint accumulatedRewards;
+        uint256 accumulatedRewards;
     }
     struct NFTStats {
         IERC721 registeredNFT;
@@ -16,6 +16,7 @@ contract Playground {
         uint level;
         uint experience;
     }
+    address[] registeredUsers;
     mapping(address => Profile) registedProfiles;
     constructor(IERC20 tokenAddr) {
         rewardToken = tokenAddr;
@@ -29,8 +30,12 @@ contract Playground {
         registedProfiles[user].registeredNFTs[index].tokenId = tokenId;
         registedProfiles[user].registeredNFTs[index].level = 0;
         registedProfiles[user].registeredNFTs[index].experience = 0; 
+        registeredUsers.push(user);
     }
     //withdraw rewards
+    function withdrawRewards() public {
+        rewardToken.transferFrom(address(this), msg.sender,registedProfiles[msg.sender].accumulatedRewards);
+    }
     //stake rewards
     //pay to enhance skill etc.
 
@@ -47,10 +52,13 @@ contract Playground {
         registedProfiles[user].registeredNFTs[index].experience + 3; 
     }
 
-    function findOpponent() {
+    function findOpponent() public view returns (NFTStats memory, uint256) {
         // look through registed users
+        address user = registeredUsers[uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, registeredUsers.length)))];
+        uint256 index = uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, registedProfiles[user].registeredNFTs.length)));
+        return (registedProfiles[user].registeredNFTs[index], index);
+    }
         // find opponent with similar level
         // battle roll dice
         // 
-    }
 } 
